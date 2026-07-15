@@ -24,7 +24,7 @@
   }
 
   *{ box-sizing: border-box; margin:0; padding:0; }
-  html{ scroll-behavior: smooth; }
+  html{ scroll-behavior: smooth; overflow-x: hidden; width: 100%; }
 
   body{
     background: var(--void);
@@ -33,7 +33,14 @@
     overflow-x: hidden;
     position: relative;
     min-height: 100vh;
+    width: 100%;
+    max-width: 100vw;
   }
+
+  /* Safety net: nothing is ever allowed to force page-level horizontal scroll */
+  img, svg, video, canvas{ max-width: 100%; }
+  table{ max-width: 100%; }
+  pre, code{ white-space: pre-wrap; word-break: break-word; }
 
   #stars{ position: fixed; inset: 0; z-index: 0; display:block; }
 
@@ -166,11 +173,33 @@
   @media (max-width: 900px){ .grid-3{ grid-template-columns: 1fr; } }
 
   /* IP classes table */
-  .class-table{ width:100%; border-collapse: collapse; font-size: .92rem; }
-  .class-table th, .class-table td{ padding: 14px 10px; text-align: center; border-bottom: 1px solid var(--line); }
+  .class-table{ width:100%; border-collapse: collapse; font-size: .92rem; table-layout: fixed; }
+  .class-table th, .class-table td{ padding: 14px 10px; text-align: center; border-bottom: 1px solid var(--line); word-break: break-word; }
   .class-table th{ color: var(--lavender); font-weight:700; font-family:'Tajawal'; }
   .class-table td{ color: var(--text); font-family:'JetBrains Mono'; font-size: .82rem; }
   .class-table tr:last-child td{ border-bottom:none; }
+
+  /* On narrow screens a 4-column table can't fit without squeezing or scrolling,
+     so it turns into a stack of labeled cards instead — no horizontal scroll needed. */
+  @media (max-width: 640px){
+    .class-table, .class-table thead, .class-table tbody, .class-table tr, .class-table td{ display:block; width:100%; }
+    .class-table thead{ display:none; }
+    .class-table tr{
+      background: var(--void); border:1px solid var(--line); border-radius:12px;
+      padding: 12px 14px; margin-bottom: 12px;
+    }
+    .class-table tr:last-child{ margin-bottom:0; }
+    .class-table td{
+      text-align: right; border-bottom: 1px dashed var(--line);
+      padding: 8px 0; display:flex; justify-content:space-between; align-items:center; gap:12px;
+      font-size: .8rem;
+    }
+    .class-table td:last-child{ border-bottom:none; }
+    .class-table td::before{
+      content: attr(data-th); font-family:'Tajawal'; font-weight:700; color: var(--lavender);
+      font-size: .72rem; flex-shrink:0;
+    }
+  }
   .class-pill{ display:inline-block; padding: 3px 10px; border-radius: 8px; font-family:'Tajawal'; font-weight:700; font-size:.8rem; }
   .class-a{ background: rgba(124,58,237,.2); color:#c4b5fd; }
   .class-b{ background: rgba(167,139,250,.2); color:#ddd6fe; }
@@ -221,8 +250,8 @@
   }
 
   /* octet visual */
-  .octet-row{ display:flex; gap: 8px; margin: 26px 0; direction: ltr; }
-  .octet{ flex:1; background: var(--void); border: 1px solid var(--line); border-radius: 10px; padding: 14px 6px; text-align:center; font-family:'JetBrains Mono'; }
+  .octet-row{ display:flex; gap: 8px; margin: 26px 0; direction: ltr; flex-wrap: wrap; }
+  .octet{ flex: 1 1 60px; min-width: 0; background: var(--void); border: 1px solid var(--line); border-radius: 10px; padding: 14px 6px; text-align:center; font-family:'JetBrains Mono'; }
   .octet .val{ font-size: 1.3rem; color: var(--text); font-weight:600; }
   .octet .lbl{ font-size: .65rem; color: var(--muted); margin-top:4px; display:block; }
   .octet.net{ border-color: rgba(124,58,237,.6); background: rgba(124,58,237,.12); }
@@ -260,9 +289,10 @@
 
   /* curriculum timeline */
   .curriculum{ display:flex; flex-direction:column; gap: 0; }
-  .curr-item{ display:flex; gap: 22px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+  .curr-item{ display:flex; gap: 22px; padding: 22px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
   .curr-item:last-child{ border-bottom:none; }
   .curr-num{ font-family:'Lalezar'; font-size: 1.6rem; color: var(--purple); min-width: 46px; }
+  .curr-body{ flex: 1 1 200px; min-width: 0; }
   .curr-body h4{ font-family:'Tajawal'; font-weight:700; color: var(--text); margin-bottom:6px; font-size: 1.02rem; }
   .curr-body p{ color: var(--muted); font-size: .9rem; line-height: 1.8; }
   .curr-status{ margin-inline-start:auto; font-family:'JetBrains Mono'; font-size:.68rem; color: var(--good); align-self:flex-start; white-space:nowrap; }
@@ -294,6 +324,17 @@
   footer .fmono{ font-family:'JetBrains Mono'; font-size:.75rem; margin-top:8px; display:block; opacity:.7; }
 
   @media (prefers-reduced-motion: reduce){ *{ animation: none !important; transition: none !important; } }
+
+  /* Mobile spacing pass — comfortable padding, no reliance on wide fixed widths */
+  @media (max-width: 480px){
+    header.hero{ padding: 100px 16px 50px; }
+    section{ padding: 70px 16px; }
+    .card{ padding: 22px; }
+    .final-cta .card{ padding: 36px 20px; }
+    .about-card{ flex-direction: column; text-align: center; }
+    .about-card p{ max-width: 100%; }
+    .nat-flow{ justify-content: center; }
+  }
 </style>
 </head>
 <body>
@@ -389,34 +430,34 @@
         </thead>
         <tbody>
           <tr>
-            <td><span class="class-pill class-a">Class A</span></td>
-            <td>1.0.0.0 – 126.255.255.255</td>
-            <td>255.0.0.0</td>
-            <td>شبكات ضخمة جدًا (دول، مؤسسات كبرى)</td>
+            <td data-th="الفئة"><span class="class-pill class-a">Class A</span></td>
+            <td data-th="النطاق (Range)">1.0.0.0 – 126.255.255.255</td>
+            <td data-th="القناع الافتراضي">255.0.0.0</td>
+            <td data-th="الاستخدام الشائع">شبكات ضخمة جدًا (دول، مؤسسات كبرى)</td>
           </tr>
           <tr>
-            <td><span class="class-pill class-b">Class B</span></td>
-            <td>128.0.0.0 – 191.255.255.255</td>
-            <td>255.255.0.0</td>
-            <td>شبكات متوسطة (جامعات، شركات كبيرة)</td>
+            <td data-th="الفئة"><span class="class-pill class-b">Class B</span></td>
+            <td data-th="النطاق (Range)">128.0.0.0 – 191.255.255.255</td>
+            <td data-th="القناع الافتراضي">255.255.0.0</td>
+            <td data-th="الاستخدام الشائع">شبكات متوسطة (جامعات، شركات كبيرة)</td>
           </tr>
           <tr>
-            <td><span class="class-pill class-c">Class C</span></td>
-            <td>192.0.0.0 – 223.255.255.255</td>
-            <td>255.255.255.0</td>
-            <td>شبكات صغيرة (المنازل، المكاتب الصغيرة)</td>
+            <td data-th="الفئة"><span class="class-pill class-c">Class C</span></td>
+            <td data-th="النطاق (Range)">192.0.0.0 – 223.255.255.255</td>
+            <td data-th="القناع الافتراضي">255.255.255.0</td>
+            <td data-th="الاستخدام الشائع">شبكات صغيرة (المنازل، المكاتب الصغيرة)</td>
           </tr>
           <tr>
-            <td><span class="class-pill class-d">Class D</span></td>
-            <td>224.0.0.0 – 239.255.255.255</td>
-            <td>—</td>
-            <td>البث المتعدد (Multicast)</td>
+            <td data-th="الفئة"><span class="class-pill class-d">Class D</span></td>
+            <td data-th="النطاق (Range)">224.0.0.0 – 239.255.255.255</td>
+            <td data-th="القناع الافتراضي">—</td>
+            <td data-th="الاستخدام الشائع">البث المتعدد (Multicast)</td>
           </tr>
           <tr>
-            <td><span class="class-pill class-e">Class E</span></td>
-            <td>240.0.0.0 – 255.255.255.255</td>
-            <td>—</td>
-            <td>محجوزة للتجارب والاستخدامات المستقبلية</td>
+            <td data-th="الفئة"><span class="class-pill class-e">Class E</span></td>
+            <td data-th="النطاق (Range)">240.0.0.0 – 255.255.255.255</td>
+            <td data-th="القناع الافتراضي">—</td>
+            <td data-th="الاستخدام الشائع">محجوزة للتجارب والاستخدامات المستقبلية</td>
           </tr>
         </tbody>
       </table>
